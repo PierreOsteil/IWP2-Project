@@ -18,3 +18,5 @@ all(file.exists(files))
 #import data
 txi <- tximport(files = files, type="salmon", tx2gene = tx2gene, dropInfReps=T)
 colnames(txi$counts) <- files
+
+#bla
