@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for i in EpiSC-AF_B_1.fastq.gz EpiSC-AF_C_1.fastq.gz EpiSC-I_B_1.fastq.gz EpiSC-I_C_1.fastq.gz EpiSC-I_AF_B_1.fastq.gz EpiSC-I_AF_C_1.fastq.gz EpiSC-FASI_A_1.fastq.gz EpiSC-FASI_B_1.fastq.gz EpiSC-FASI_C_1.fastq.gz EpiSC-FSI_A_1.fastq.gz EpiSC-FSI_B_1.fastq.gz EpiSC-FSI_C_1.fastq.gz EpiSC-DKKnul_A_1.fastq.gz EpiSC-DKKnul_B_1.fastq.gz EpiSC-DKKnul_C_1.fastq.gz \ 
+	do 
+		wget https://data.macrogen.com/~macro2/HiSeq02//20180504/1804KHP-0023/$i 
+	done

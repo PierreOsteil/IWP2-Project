@@ -1,0 +1,18 @@
+#!/bin/bash
+
+for samp1 in `ls /processing/PROCESSING/MIGRATED/Bioinformatics/ewilkie/01-Projects/Embryo_staging/01-Shanghai_transfer/spatial/E7.5/Embryo3/*.R1.clean.fastq.bz2`;
+do
+	echo ${samp1}
+	samp2=`echo ${samp1} | awk '{gsub("_1","_2",$0); print}'`
+	echo ${samp2}
+	samp_name=`echo ${samp1} | awk '{gsub("/processing/PROCESSING/MIGRATED/Bioinformatics/ewilkie/01-Projects/Embryo_staging/01-Shanghai_transfer/spatial/E7.5/Embryo3/","",$0); print}'`
+	echo ${samp_name}
+	/processing/PROCESSING/Embryology/tools/salmon quant \
+		-p 8 \
+		-i /processing/PROCESSING/Embryology/tools/genomes/gencode_M17_index \
+		-l A \
+		-1 ${samp1} \
+		-2 ${samp2} \
+		-o ./quants/;
+		mv ./quants/quant.sf /processing/PROCESSING/Embryology/posteil/Salmon/quants/${samp_name}_quant.sf
+done
