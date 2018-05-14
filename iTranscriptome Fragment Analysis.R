@@ -14,7 +14,7 @@ dds <- DESeqDataSetFromTximport(txi, SampleTable, ~TissueType)
 dds <- dds[ rowSums(counts(dds)) > 1, ]
 
 TABLE <- assay(dds)
-head(TABLEdds)
+head(TABLE)
 
 ################### Change all sample names ##################################################
 #clean the names
@@ -49,13 +49,13 @@ colnames(TABLE) <- c(gsub("E5.5Epi","Embryo_Cha_E5.5_Al", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("E5.5ExE","Embryo_Cha_E5.5_ExE", colnames(TABLE)))
 
 #Peng Samples
-colnames(TABLE) <- c(gsub("E5.5_2.","Embryo_Pen_E5.5_", colnames(TABLE)))
-colnames(TABLE) <- c(gsub("E6.0_2.","Embryo_Pen_E6.0_", colnames(TABLE)))
-colnames(TABLE) <- c(gsub("E6.5_5.","Embryo_Pen_E6.5_", colnames(TABLE)))
-colnames(TABLE) <- c(gsub("E7.0_1.","Embryo_Pen_E7.0_", colnames(TABLE)))
-colnames(TABLE) <- c(gsub("E7.5_5.","Embryo_Pen_E7.5_1_", colnames(TABLE)))
+colnames(TABLE) <- c(gsub("E5.5_2.","Embryo_Pen_E5.5_", colnames(TABLE)))# 1 and 2 are similar dataset
+colnames(TABLE) <- c(gsub("E6.0_2.","Embryo_Pen_E6.0_", colnames(TABLE)))# 2 contains ExE tissues
+colnames(TABLE) <- c(gsub("E6.5_5.","Embryo_Pen_E6.5_", colnames(TABLE)))# The ref embryo Guangdun is using
+colnames(TABLE) <- c(gsub("E7.0_1.","Embryo_Pen_E7.0_N", colnames(TABLE)))# N for New data set (ref as well)
+colnames(TABLE) <- c(gsub("E7.5_5.","Embryo_Pen_E7.5_5_", colnames(TABLE))) 
 colnames(TABLE) <- c(gsub("E7.5_2","Embryo_Pen_E7.5_2", colnames(TABLE)))
-
+colnames(TABLE) <- c(gsub("E7.5_3","Embryo_Pen_E7.5_3", colnames(TABLE)))
 #Wu samples
 colnames(TABLE) <- c(gsub("SRR1660273","Embryo_Wu._E6.5_AP", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1660274","Embryo_Wu._E6.5_AD", colnames(TABLE)))
@@ -83,56 +83,68 @@ colnames(TABLE) <- c(gsub("SRR1609337","EpiSCs_Kur_WnBM", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1609338","EpiSCs_Kur_BmIw", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1609339","EpiSCs_Kur_AFAF", colnames(TABLE)))
 
-
 #Wu
 colnames(TABLE) <- c(gsub("SRR1660269_1","EpiSCs_Wu._AFAF_1", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1660270_1","EpiSCs_Wu._AFAF_2", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1660271_1","EpiSCs_Wu._IwIw_1", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1660272_1","EpiSCs_Wu._IwIw_2", colnames(TABLE)))
 
+#Peng DevCell Data
+setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset/Salmon")
+PengDevCell <- read.table("sample DevCell iTra.txt", sep= "\t")$V1
+PengDevCell_dat <- data.frame(TABLE[, c(grep("SRR", colnames(TABLE)))])
+colnames(PengDevCell_dat) <- PengDevCell
+woPengDevCell_dat <- data.frame(TABLE[, -c(grep("SRR", colnames(TABLE)))])
+TABLE_clean <- cbind(woPengDevCell_dat,PengDevCell_dat)
 #Check
-colnames(TABLE)
+colnames(TABLE_clean)
 
 
+################### TABLE REFERENCE EMBRYO ###################
+E5.5_dat <- TABLE_clean[,c(grep("Pen_E5.5", colnames(TABLE_clean)))]
+E6.0_dat <- TABLE_clean[,c(grep("Pen_E6.0", colnames(TABLE_clean)))]
+E6.5_dat <- TABLE_clean[,c(grep("Pen_E6.5", colnames(TABLE_clean)))]
+E7.0_dat <- TABLE_clean[,c(grep("Pen_E7.0_N", colnames(TABLE_clean)))]
+E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_3_", colnames(TABLE_clean)))]
 
+TABLEPeng <- cbind(E5.5_dat, E6.0_dat, E6.5_dat, E7.0_dat, E7.5_dat)
+
+#only Peng_embryos
+colnames(TABLEPeng) <- c(gsub("__","_",colnames(TABLEPeng)))
+TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
+
+
+##### Sample annotation
+Stage <- substring(colnames(TABLEPeng), 12, 15)
+Lab <- substring(colnames(TABLEPeng), 8, 10)
+
+####################################
+#Negative binomiale normalisation
+library("edgeR")
+TABLEPeng_znorm <- apply(TABLEPeng , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+
+
+##################################
 #PCA analysis
 library("FactoMineR")
 library("rafalib")
 library("ggplot2")
 library("ggrepel")
 
-#only Peng_embryos
-TABLEPeng <- as.data.frame(TABLEdds[,grep("clean", colnames(TABLEdds))])
-
-colnames(TABLEPeng) <- c(gsub(".R1.clean.fastq.gz_quant.sf","",colnames(TABLEPeng)))
-colnames(TABLEPeng) <- c(gsub("__","_",colnames(TABLEPeng)))
-TABLEPeng <- TABLEPeng[,-c(grep("En", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("7.0_1_9R", colnames(TABLEPeng)))]
-TABLE <- TABLEPeng
-
 
 #plot PCA
 mypar(1,2)
-PCA_TOT=PCA(t(TABLE) , scale.unit=T,ncp=5, axes = c(1,2))
+
+PCA_TOT=PCA(t(TABLEPeng_znorm) , scale.unit=T,ncp=5, axes = c(1,2))
 
 PCAcoord <- as.data.frame(PCA_TOT$ind)
-PCAcoord12 <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2])
 
-
-Stage <- substring(colnames(TABLE), 1, 4)
-
-#Seq <- substring(colnames(TABLE), nchar(colnames(TABLE))-10,nchar(colnames(TABLE))-10)
-#Seq <- gsub("t","z" ,Seq)
-
-#Region <- substring(colnames(TABLE), nchar(colnames(TABLE))-5,nchar(colnames(TABLE))-5)
+PCAcoord12 <- cbind.data.frame(PCAcoord[,1], PCAcoord[,3])
 
 PCA_data <- cbind.data.frame(PCAcoord12, Stage)
-                             
-
 colnames(PCA_data) <- c("PC1", "PC2",  "Stage")
 
 PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Stage)) +
@@ -143,9 +155,31 @@ PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Stage)) +
   theme_bw()
 PCA
 
+## 3D PCA
 library("rgl")
+plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,4], col=as.integer(PCA_data$Stage))
 
-plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,3], col=as.integer(PCA_data$Stage))
+
+
+###########################
+# Plot cells
+
+TABLEAll <- cbind(TABLEPeng_znorm, TABLE[,c(grep("Ost", colnames(TABLE)),
+                                            grep("Wu", colnames(TABLE)),
+                                            grep("Cha", colnames(TABLE)),
+                                            grep("Kur", colnames(TABLE))
+                                                 )])
+
+TABLEPeng_znorm <- apply(TABLEPeng , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+
+
+
+
+
+
+### TO REVISE
+
+
 
 ######################################################################################
 #extract genes contributing to Axis 3
@@ -190,11 +224,6 @@ PCA
 plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,3], col=as.integer(PCA_data$Stage))
 
 
-####################################
-#Negative binomiale normalisation
-library("edgeR")
-TABLE_znorm <- apply(TABLEStageGene , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
-TABLE <- TABLE_znorm
 
 
 #Allocate Samples
