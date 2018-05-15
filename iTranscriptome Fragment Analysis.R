@@ -189,6 +189,7 @@ TABLEAll <- TABLEAll[,-c(grep("AFIw1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("IwAF1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("IwIw1", colnames(TABLEAll)))]
 
+
 #With the 400 genes
 TABLEStageGene <- TABLEAll[c(which(rownames(TABLEAll) %in% c(Gene400))),]
 
@@ -196,6 +197,8 @@ TABLEStageGene <- TABLEAll[c(which(rownames(TABLEAll) %in% c(Gene400))),]
 library("edgeR")
 TABLEAll_znorm <- apply(TABLEStageGene , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
 TABLEAll_znorm <- data.frame(TABLEAll_znorm)
+write.csv(TABLEAll_znorm, "TABLEALL_znorm.csv")
+
 
 #sample annotation
 Stage <- substring(colnames(TABLEAll_znorm),12, 15)
