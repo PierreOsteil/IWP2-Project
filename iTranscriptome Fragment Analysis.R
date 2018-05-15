@@ -105,26 +105,25 @@ E5.5_dat <- TABLE_clean[,c(grep("Pen_E5.5", colnames(TABLE_clean)))]
 E6.0_dat <- TABLE_clean[,c(grep("Pen_E6.0", colnames(TABLE_clean)))]
 E6.5_dat <- TABLE_clean[,c(grep("Pen_E6.5", colnames(TABLE_clean)))]
 E7.0_dat <- TABLE_clean[,c(grep("Pen_E7.0_N", colnames(TABLE_clean)))]
-E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_3_", colnames(TABLE_clean)))]
+E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_5_", colnames(TABLE_clean)))]
 
 TABLEPeng <- cbind(E5.5_dat, E6.0_dat, E6.5_dat, E7.0_dat, E7.5_dat)
 
 #only Peng_embryos
 colnames(TABLEPeng) <- c(gsub("__","_",colnames(TABLEPeng)))
 TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EnA", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EnP", colnames(TABLEPeng)))]
 TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
 TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
 TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("E7.0_N9R", colnames(TABLEPeng)))]
 
 
 ##### Sample annotation
 Stage <- substring(colnames(TABLEPeng), 12, 15)
 Lab <- substring(colnames(TABLEPeng), 8, 10)
 
-####################################
-#Negative binomiale normalisation
-library("edgeR")
-TABLEPeng_znorm <- apply(TABLEPeng , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
 
 
 ##################################
@@ -138,11 +137,11 @@ library("ggrepel")
 #plot PCA
 mypar(1,2)
 
-PCA_TOT=PCA(t(TABLEPeng_znorm) , scale.unit=T,ncp=5, axes = c(1,2))
+PCA_TOT=PCA(t(TABLEPeng) , scale.unit=T,ncp=5, axes = c(1,2))
 
 PCAcoord <- as.data.frame(PCA_TOT$ind)
 
-PCAcoord12 <- cbind.data.frame(PCAcoord[,1], PCAcoord[,3])
+PCAcoord12 <- cbind.data.frame(PCAcoord[,3], PCAcoord[,2])
 
 PCA_data <- cbind.data.frame(PCAcoord12, Stage)
 colnames(PCA_data) <- c("PC1", "PC2",  "Stage")
@@ -160,27 +159,6 @@ library("rgl")
 plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,4], col=as.integer(PCA_data$Stage))
 
 
-
-###########################
-# Plot cells
-
-TABLEAll <- cbind(TABLEPeng_znorm, TABLE[,c(grep("Ost", colnames(TABLE)),
-                                            grep("Wu", colnames(TABLE)),
-                                            grep("Cha", colnames(TABLE)),
-                                            grep("Kur", colnames(TABLE))
-                                                 )])
-
-TABLEPeng_znorm <- apply(TABLEPeng , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
-
-
-
-
-
-
-### TO REVISE
-
-
-
 ######################################################################################
 #extract genes contributing to Axis 3
 PCAvar <- as.data.frame(PCA_TOT$var)
@@ -193,69 +171,60 @@ LateGenes <- rownames(axis3[c((length(rownames(axis3))-199):length(rownames(axis
 Gene400 <- c(EarlyGenes, LateGenes)
 
 ##############
-#With the 400 genes
+#Select samples
+TABLEAll <- cbind(TABLEPeng, TABLE_clean[,c(grep("Ost", colnames(TABLE_clean)),
+                                            grep("Wu", colnames(TABLE_clean)),
+                                            grep("Cha", colnames(TABLE_clean)),
+                                            grep("Kur", colnames(TABLE_clean))
+)])
 
-TABLEStageGene <- TABLEdds[c(which(rownames(TABLEdds) %in% c(Gene400))),]
+
+#With the 400 genes
+TABLEStageGene <- TABLEAll[c(which(rownames(TABLEAll) %in% c(Gene400))),]
+
+#Negative binomiale normalisation
+library("edgeR")
+TABLEAll_znorm <- apply(TABLEStageGene , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+TABLEAll_znorm <- data.frame(TABLEAll_znorm)
+
+#sample annotation
+Stage <- substring(colnames(TABLEAll_znorm),12, 15)
+Lab <- substring(colnames(TABLEStageGene), 8, 10)
+
 ####PCA
 mypar(1,2)
-PCA_TOT=PCA(t(TABLEStageGene) , scale.unit=T,ncp=5, axes = c(1,2))
+PCA_TOT=PCA(t(TABLEAll_znorm) , scale.unit=T,ncp=5, axes = c(1,2))
 
 PCAcoord <- as.data.frame(PCA_TOT$ind)
 PCAcoord12 <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2])
 
-Stage <- substring(colnames(TABLEStageGene), 1, 4)
-colnames(TABLEStageGene) <- c(gsub("fastq.gz_quant.sf","",colnames(TABLEStageGene)))
-
-PCA_data <- cbind.data.frame(PCAcoord12, Stage)
-
-
-colnames(PCA_data) <- c("PC1", "PC2","Stage")
-rownames(PCA_data) <- colnames(TABLEStageGene)
-
-PCA <- ggplot(PCA_data, aes(PC1, PC2 ,color=Stage)) +
-  geom_point(size=6) +
-  #scale_shape_manual(values=1:nlevels(APaxis))+
-  xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
-  ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
-  #geom_text_repel(aes(label=colnames(TABLEStageGene)))+
-  theme_bw()
-PCA
-
-plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,3], col=as.integer(PCA_data$Stage))
-
-
-
-
-#Allocate Samples
-Type <- substring(colnames(TABLE), 1, 6)
-Stage <- substring(colnames(TABLE), 12, 15)
-Lab <- substring(colnames(TABLE), 8, 10)
-APType <- substring(colnames(TABLE), nchar(colnames(TABLE)), nchar(colnames(TABLE)))
-
-####PCA#######################
-PCA_TOT=PCA(t(TABLE) , scale.unit=T,ncp=5, axes = c(1,2))
-
-PCAcoord <- as.data.frame(PCA_TOT$ind)
-PCAcoord12 <- cbind.data.frame(PCAcoord[,2], PCAcoord[,1])
 
 PCA_data <- cbind.data.frame(PCAcoord12, Stage, Lab)
 
-colnames(PCA_data) <- c("PC2", "PC1",  "Parameter", "Lab")
+colnames(PCA_data) <- c("PC1", "PC2",  "Parameter", "Lab")
 
-PCA <- ggplot(PCA_data, aes(PC2, PC1, color=Parameter, shape=Lab)) +
-  geom_point() +
+PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Parameter, shape=Lab)) +
+  geom_point(size=5) +
   scale_shape_manual(values=c(15,16,17,18,25))+
   scale_size_discrete()+
   scale_colour_manual(values=c("black", "blue", "darkorange3", "grey", "purple",
                                "cyan","lightseagreen","green", "green4", "darkolivegreen", 
                                "red", "pink", "magenta", "darkorange3", "grey", "grey"))+
-  xlab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
-  ylab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
+  xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
+  ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
   #geom_text_repel(aes(label=colnames(TABLEPeng)))+
   theme_bw()
 PCA
 
 plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,3], col=as.integer(PCA_data$Parameter))
+
+
+
+
+### TO REVISE
+
+
+
 
 
 ###################### Double Heatmap ############################
