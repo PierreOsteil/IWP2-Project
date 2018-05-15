@@ -169,6 +169,8 @@ axis3 <- GeneOnPCs[order(GeneOnPCs$PCAvar...3.),]
 EarlyGenes <- rownames(axis3[c(1:200),]) #top100 genes left PC3
 LateGenes <- rownames(axis3[c((length(rownames(axis3))-199):length(rownames(axis3))),]) #top100 genes right PC2
 Gene400 <- c(EarlyGenes, LateGenes)
+write.csv(x = Gene400, "Gene400.csv")
+
 
 ##############
 #Select samples
@@ -190,6 +192,7 @@ TABLEAll_znorm <- data.frame(TABLEAll_znorm)
 #sample annotation
 Stage <- substring(colnames(TABLEAll_znorm),12, 15)
 Lab <- substring(colnames(TABLEStageGene), 8, 10)
+SizeText <- c(rep("A", ncol(TABLEStageGene)))
 
 ####PCA
 mypar(1,2)
@@ -199,9 +202,9 @@ PCAcoord <- as.data.frame(PCA_TOT$ind)
 PCAcoord12 <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2])
 
 
-PCA_data <- cbind.data.frame(PCAcoord12, Stage, Lab)
+PCA_data <- cbind.data.frame(PCAcoord12, Stage, Lab, SizeText)
 
-colnames(PCA_data) <- c("PC1", "PC2",  "Parameter", "Lab")
+colnames(PCA_data) <- c("PC1", "PC2",  "Parameter", "Lab", "SizeText")
 
 PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Parameter, shape=Lab)) +
   geom_point(size=5) +
@@ -212,7 +215,7 @@ PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Parameter, shape=Lab)) +
                                "red", "pink", "magenta", "darkorange3", "grey", "grey"))+
   xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
   ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
-  #geom_text_repel(aes(label=colnames(TABLEPeng)))+
+  geom_text_repel(aes(label=colnames(TABLEAll_znorm), size=SizeText))+
   theme_bw()
 PCA
 
