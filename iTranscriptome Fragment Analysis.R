@@ -179,7 +179,15 @@ TABLEAll <- cbind(TABLEPeng, TABLE_clean[,c(grep("Ost", colnames(TABLE_clean)),
                                             grep("Cha", colnames(TABLE_clean)),
                                             grep("Kur", colnames(TABLE_clean))
 )])
-
+TABLEAll <- TABLEAll[,-c(grep("Cha_E5.5_ExE", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("Cha_E6.0_ExE", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("Cha_E6.5_EX", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("Cha_E7.0_EX", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("Cha_E7.5_EX", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("AFAF1", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("AFIw1", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("IwAF1", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("IwIw1", colnames(TABLEAll)))]
 
 #With the 400 genes
 TABLEStageGene <- TABLEAll[c(which(rownames(TABLEAll) %in% c(Gene400))),]
@@ -222,22 +230,3 @@ PCA
 plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,3], col=as.integer(PCA_data$Parameter))
 
 
-
-
-### TO REVISE
-
-
-
-
-
-###################### Double Heatmap ############################
-
-sampleDistMatrix <- as.matrix(dist(t(TABLE)))
-
-DKKn <- sampleDistMatrix[c(grep("6.5", rownames(sampleDistMatrix))),
-                         c(grep("DKK", colnames(sampleDistMatrix)), 
-                           grep("Ost_AFAF", colnames(sampleDistMatrix)))]
-DKKn <- DKKn[-c(grep("EP", rownames(DKKn))),]
-DKKn <- DKKn[-c(grep("EA", rownames(DKKn))),]
-DKKn <- DKKn[-c(grep("Cha", rownames(DKKn))),]
-max(DKKn)
