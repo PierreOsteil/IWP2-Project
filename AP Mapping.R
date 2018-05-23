@@ -1,6 +1,6 @@
-# This code will perform a ANOVA between Peng 5 stages to obtain the signature genes for each region
+# This code will try to obtain the signature genes for each region
 # the idea would be to take the Anterior versus POsterior for each day of development
-# First I build a table of the median level of expression for each layer
+# First I build a table of the mean level of expression for each layer
 setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset/Salmon")
 
 Mapping_dat <- read.csv("TABLEALL_znorm.csv", h=T, row.names=1, sep = ",")
@@ -18,20 +18,20 @@ Ant_dat <- Mapping_dat_Peng[,c(grep("A", APaxis))]
 Ant_Stage <- substring(colnames(Ant_dat), 12, 15)
 
 
-Ant5.5_dat_med <- apply(Ant_dat[,grep("E5.5", colnames(Ant_dat))], 1, FUN = median )
-Ant6.0_dat_med <- apply(Ant_dat[,grep("E6.0", colnames(Ant_dat))], 1, FUN = median )
-Ant6.5_dat_med <- apply(Ant_dat[,grep("E6.5", colnames(Ant_dat))], 1, FUN = median )
-Ant7.0_dat_med <- apply(Ant_dat[,grep("E7.0", colnames(Ant_dat))], 1, FUN = median )
-Ant7.5_dat_med <- apply(Ant_dat[,grep("E7.5", colnames(Ant_dat))], 1, FUN = median )
+Ant5.5_dat_med <- apply(Ant_dat[,grep("E5.5", colnames(Ant_dat))], 1, FUN = mean )
+Ant6.0_dat_med <- apply(Ant_dat[,grep("E6.0", colnames(Ant_dat))], 1, FUN = mean )
+Ant6.5_dat_med <- apply(Ant_dat[,grep("E6.5", colnames(Ant_dat))], 1, FUN = mean )
+Ant7.0_dat_med <- apply(Ant_dat[,grep("E7.0", colnames(Ant_dat))], 1, FUN = mean )
+Ant7.5_dat_med <- apply(Ant_dat[,grep("E7.5", colnames(Ant_dat))], 1, FUN = mean )
 
 Pos_dat <- cbind.data.frame(Mapping_dat_Peng[,c(grep("P", APaxis))] ,
                             Mapping_dat_Peng[,c(grep("B", APaxis))])
 
-Pos5.5_dat_med <- apply(Pos_dat[,grep("E5.5", colnames(Pos_dat))], 1, FUN = median )
-Pos6.0_dat_med <- apply(Pos_dat[,grep("E6.0", colnames(Pos_dat))], 1, FUN = median )
-Pos6.5_dat_med <- apply(Pos_dat[,grep("E6.5", colnames(Pos_dat))], 1, FUN = median )
-Pos7.0_dat_med <- apply(Pos_dat[,grep("E7.0", colnames(Pos_dat))], 1, FUN = median )
-Pos7.5_dat_med <- apply(Pos_dat[,grep("E7.5", colnames(Pos_dat))], 1, FUN = median )
+Pos5.5_dat_med <- apply(Pos_dat[,grep("E5.5", colnames(Pos_dat))], 1, FUN = mean )
+Pos6.0_dat_med <- apply(Pos_dat[,grep("E6.0", colnames(Pos_dat))], 1, FUN = mean )
+Pos6.5_dat_med <- apply(Pos_dat[,grep("E6.5", colnames(Pos_dat))], 1, FUN = mean )
+Pos7.0_dat_med <- apply(Pos_dat[,grep("E7.0", colnames(Pos_dat))], 1, FUN = mean )
+Pos7.5_dat_med <- apply(Pos_dat[,grep("E7.5", colnames(Pos_dat))], 1, FUN = mean )
 
 
 AP_dat <- cbind.data.frame(Ant5.5_dat_med, Ant6.0_dat_med, Ant6.5_dat_med, Ant7.0_dat_med, Ant7.5_dat_med,
