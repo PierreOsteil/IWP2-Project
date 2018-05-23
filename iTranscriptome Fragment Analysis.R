@@ -1,7 +1,7 @@
 # Embryonic fragment analysis
 # This code requires the use of "Open_quant_sf_files.R" code to generate "txi" and "files"
 
-#DESeq2
+#Dds from txi
 
 SampleTable <- data.frame(substring(files, 1, 1))
 colnames(SampleTable) <- "TissueType"
@@ -11,10 +11,11 @@ rownames(SampleTable) <- colnames(txi$counts)
 library("DESeq2")
 dds <- DESeqDataSetFromTximport(txi, SampleTable, ~TissueType)
 
-dds <- dds[ rowSums(counts(dds)) > 1, ]
+dds <- dds[ rowSums(counts(dds)) > 1, ] #trim FPKM > 1 
 
 TABLE <- assay(dds)
 head(TABLE)
+
 
 ################### Change all sample names ##################################################
 #clean the names
