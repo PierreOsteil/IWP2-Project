@@ -104,20 +104,22 @@ colnames(TABLE_clean)
 E5.5_dat <- TABLE_clean[,c(grep("Pen_E5.5", colnames(TABLE_clean)))]
 E6.0_dat <- TABLE_clean[,c(grep("Pen_E6.0", colnames(TABLE_clean)))]
 E6.5_dat <- TABLE_clean[,c(grep("Pen_E6.5", colnames(TABLE_clean)))]
-E7.0_dat <- TABLE_clean[,c(grep("Pen_E7.0_N", colnames(TABLE_clean)))]
-E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_5_", colnames(TABLE_clean)))]
+E7.0_dat <- TABLE_clean[,c(grep("Pen_E7.0_1", colnames(TABLE_clean)))]
+E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_3_", colnames(TABLE_clean)))]
 
 TABLEPeng <- cbind(E5.5_dat, E6.0_dat, E6.5_dat, E7.0_dat, E7.5_dat)
 
 #only Peng_embryos
 colnames(TABLEPeng) <- c(gsub("__","_",colnames(TABLEPeng)))
-TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("EnA", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("EnP", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
-TABLEPeng <- TABLEPeng[,-c(grep("E7.0_N9R", colnames(TABLEPeng)))]
+
+#below if E7.5_5 is used only - to remove ExE samples
+#TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
+#TABLEPeng <- TABLEPeng[,-c(grep("EnA", colnames(TABLEPeng)))]
+#TABLEPeng <- TABLEPeng[,-c(grep("EnP", colnames(TABLEPeng)))]
+#TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
+#TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
+#TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
+#TABLEPeng <- TABLEPeng[,-c(grep("E7.0_N9R", colnames(TABLEPeng)))]
 
 
 ##### Sample annotation
@@ -198,7 +200,7 @@ write.csv(TABLEStageGene, "TABLEAll_G400.csv")
 
 #Negative binomiale normalisation
 library("edgeR")
-TABLEAll_znorm <- apply(TABLEStageGene , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+TABLEAll_znorm <- apply(TABLEAll , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
 TABLEAll_znorm <- data.frame(TABLEAll_znorm)
 write.csv(TABLEAll_znorm, "TABLEALL_znorm.csv")
 
