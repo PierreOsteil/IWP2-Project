@@ -189,9 +189,12 @@ TABLEAll <- TABLEAll[,-c(grep("AFIw1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("IwAF1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("IwIw1", colnames(TABLEAll)))]
 
+write.csv(TABLEAll, "TABLEAll.csv")
 
 #With the 400 genes
 TABLEStageGene <- TABLEAll[c(which(rownames(TABLEAll) %in% c(Gene400))),]
+
+write.csv(TABLEStageGene, "TABLEAll_G400.csv")
 
 #Negative binomiale normalisation
 library("edgeR")
