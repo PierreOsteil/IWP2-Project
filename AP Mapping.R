@@ -8,8 +8,14 @@ library(corrplot)
 
 setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset/Salmon")
 
+Mapping_dat <- read.csv("TABLEALL_znorm.csv", h=T, row.names=1, sep = ",")
+#or
 Mapping_dat <- read.csv("TABLEALL.csv", h=T, row.names=1, sep = ",")
+#or
 #Mapping_dat <- read.csv("TABLEALL_G400.csv", h=T, row.names=1, sep = ",")
+
+
+#then do select Peng's data
 Mapping_dat_Peng <- Mapping_dat[,c(grep("Pen", colnames(Mapping_dat)))]
 
 #sample annotation
@@ -81,21 +87,54 @@ heatmap(x = SpearCor, col = col, symm = TRUE)
 
 ##Guilt by association method
 #E5.5
+Ant_dat <- Mapping_dat_Peng[,c(grep("A", APaxis))]
+Ant_Stage <- substring(colnames(Ant_dat), 12, 15)
+
+Ant5.5_dat_med <- Ant_dat[,grep("E5.5", colnames(Ant_dat))]
+Ant6.0_dat_med <- Ant_dat[,grep("E6.0", colnames(Ant_dat))]
+Ant6.5_dat_med <- Ant_dat[,grep("E6.5", colnames(Ant_dat))]
+Ant7.0_dat_med <- Ant_dat[,grep("E7.0", colnames(Ant_dat))]
+Ant7.5_dat_med <- Ant_dat[,grep("E7.5", colnames(Ant_dat))]
+
+Pos_dat <- cbind.data.frame(Mapping_dat_Peng[,c(grep("P", APaxis))] ,
+                            Mapping_dat_Peng[,c(grep("B", APaxis))])
+
+Pos5.5_dat_med <- Pos_dat[,grep("E5.5", colnames(Pos_dat))]
+Pos6.0_dat_med <- Pos_dat[,grep("E6.0", colnames(Pos_dat))]
+Pos6.5_dat_med <- Pos_dat[,grep("E6.5", colnames(Pos_dat))]
+Pos7.0_dat_med <- Pos_dat[,grep("E7.0", colnames(Pos_dat))]
+Pos7.5_dat_med <- Pos_dat[,grep("E7.5", colnames(Pos_dat))]
+
 
 AP_E5.5 <- cbind.data.frame(Ant5.5_dat_med, Pos5.5_dat_med)
+AP_E6.0 <- cbind.data.frame(Ant6.0_dat_med, Pos6.0_dat_med)
+AP_E6.5 <- cbind.data.frame(Ant6.5_dat_med, Pos6.5_dat_med)
+AP_E7.0 <- cbind.data.frame(Ant7.0_dat_med, Pos7.0_dat_med)
+AP_E7.5 <- cbind.data.frame(Ant7.5_dat_med, Pos7.5_dat_med)
 
-AP_dat <- AP_E5.5
+#but hitst test iTranscriptome DevCell data
+E7.0 <- Mapping_dat_Peng[,grep("E7.0", colnames(Mapping_dat_Peng))]
+E7.0 <- E7.0[ rowSums(E7.0) > 2, ]
 
-PCA_TOT=PCA(t(AP_dat) , scale.unit=T,ncp=5, axes = c(1,2))
+log10_E7.0 <- log10(E7.0+1)
+log10_E7.0 <- log10_E7.0[ var(log10_E7.0) > 0.05,]
+
+#dat to PCA
+Dat <- log10_E7.0 
+
+Position <- substring(colnames(Dat), nchar(colnames(Dat)), nchar(colnames(Dat)))
+
+
+PCA_TOT=PCA(t(Dat) , scale.unit=T,ncp=5, axes = c(1,2))
 PCAcoord <- as.data.frame(PCA_TOT$ind)
-PCA_data <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2])
-colnames(PCA_data) <- c("PC1", "PC2")
+PCA_data <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2], Position)
+colnames(PCA_data) <- c("PC1", "PC2", "Position")
 
-PCA <- ggplot(PCA_data, aes(PC1, PC2)) +
+PCA <- ggplot(PCA_data, aes(PC1, PC2, colour=Position)) +
   geom_point(size=6) +
   xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
   ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
-  geom_text_repel(aes(label=substring(colnames(AP_dat),1,6)))+
+  geom_text_repel(aes(label=substring(colnames(AP_dat),12,21)))+
   theme_bw()
 PCA
 

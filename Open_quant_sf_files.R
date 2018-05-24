@@ -14,7 +14,3 @@ dir <- "C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRa
 setwd(dir)
 files <- list.files(dir)
 all(file.exists(files))
-
-#import data
-txi <- tximport(files = files, type="salmon", tx2gene = tx2gene, dropInfReps=T)
-colnames(txi$counts) <- files

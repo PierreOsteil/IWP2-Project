@@ -88,17 +88,31 @@ colnames(PengDevCell_dat) <- PengDevCell
 woPengDevCell_dat <- data.frame(TABLE[, -c(grep("SRR", colnames(TABLE)))])
 TABLE_name <- c(colnames(t(woPengDevCell_dat)),colnames(PengDevCell_dat))
 
+#Change the name
+Lab_stage <- substring(TABLE_name, 12, 16)
+AP <-  substring(TABLE_name, nchar(TABLE_name), nchar(TABLE_name))
+LabStageAP <- paste(Lab_stage, AP)
+
 ##Allocate the new names to the samples
-SampleTable <- data.frame(TABLE_name)
-colnames(SampleTable) <- "TissueType"
-colnames(txi$counts) <- rownames(SampleTable) 
+SampleTable <- cbind.data.frame(substring(TABLE_name,1,2), LabStageAP)
+rownames(SampleTable) <- TABLE_name
+colnames(SampleTable) <- c("TissueType", "LabStageAP")
+colnames(txi$counts) <- rownames(SampleTable)
 
 
 #Dds from txi files
 library("DESeq2")
-dds <- DESeqDataSetFromTximport(txi, SampleTable, ~TissueType)
+dds <- DESeqDataSetFromTximport(txi, SampleTable, ~LabStageAP)
 
-dds <- dds[ rowSums(counts(dds)) > 1, ] #trim FPKM > 1 
+dds_temp <- dds[,grep("Embryo_Pen_E6.5", colnames(dds))]
+
+dds_temp$LabStageAP <- droplevels(dds_temp$LabStageAP)
+
+dds2 <- DESeq(dds_temp)
+
+res6.5 <- results(dds2, contrast = c("LabStageAP", "E6.5 A", "E6.5 P"))
+res7.0 <- results(dds2, contrast = c("LabStageAP", "E7.0_1 A", "E7.0_1 P"))
+res7.5 <- results(dds2, contrast = c("LabStageAP", "E7.5_3 A", "E7.5_3 P"))
 
 
 #DESeq
