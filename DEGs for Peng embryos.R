@@ -91,7 +91,7 @@ TABLE_name <- c(colnames(t(woPengDevCell_dat)),colnames(PengDevCell_dat))
 #Change the name
 Lab_stage <- substring(TABLE_name, 12, 17)
 AP <-  substring(TABLE_name, nchar(TABLE_name), nchar(TABLE_name))
-  #AP <-  substring(TABLE_name, 18, 18) #for embryo E6.5
+#AP <-  substring(TABLE_name, 18, 18) #for embryo E6.5
 LabStageAP <- paste(Lab_stage, AP)
 
 ##Allocate the new names to the samples
@@ -105,16 +105,22 @@ colnames(txi$counts) <- rownames(SampleTable)
 library("DESeq2")
 dds <- DESeqDataSetFromTximport(txi, SampleTable, ~LabStageAP) #extract txi data
 
-dds_temp <- dds[,grep("Embryo_Pen_E7.5_3", colnames(dds))] #choose the embryo to analyse in the cohort. 
+dds_temp <- dds[,grep("Embryo_Pen_E5.5_", colnames(dds))] #choose the embryo to analyse in the cohort.
+dds_temp <- dds[,grep("Embryo_Pen_E6.0_", colnames(dds))]
+dds_temp <- dds[,grep("Embryo_Pen_E6.5_", colnames(dds))]
+dds_temp <- dds[,grep("Embryo_Pen_E7.0_N", colnames(dds))]  
+dds_temp <- dds[,grep("Embryo_Pen_E7.5_3", colnames(dds))]
 
 dds_temp$LabStageAP <- droplevels(dds_temp$LabStageAP) #Remove sample annotation for unwanted samples
 
 dds2 <- DESeq(dds_temp) # shouldn't take more than a few minute
+dds2 <- dds2[ rowSums(counts(dds2)) > 1, ]
 
-res5.5 <- results(dds2, contrast = c("LabStageAP", "E5.5_ A", "E5.5_ P"))
-res6.0 <- results(dds2, contrast = c("LabStageAP", "E6.0_ A", "E6.0_ B"))
+
+res5.5 <- results(dds2, contrast = c("LabStageAP", "E5.5__ A", "E5.5__ P"))
+res6.0 <- results(dds2, contrast = c("LabStageAP", "E6.0__ A", "E6.0__ B"))
 res6.5 <- results(dds2, contrast = c("LabStageAP", "E6.5_ A", "E6.5_ P"))
-res7.0 <- results(dds2, contrast = c("LabStageAP", "E7.0_ A", "E7.0_ R"))
+res7.0 <- results(dds2, contrast = c("LabStageAP", "E7.0_N A", "E7.0_N P"))
 res7.5 <- results(dds2, contrast = c("LabStageAP", "E7.5_3 A", "E7.5_3 P"))
 
 
@@ -122,7 +128,7 @@ res7.5 <- results(dds2, contrast = c("LabStageAP", "E7.5_3 A", "E7.5_3 P"))
 
 DEG5.5 <- cbind.data.frame(rownames(res5.5), res5.5$log2FoldChange, res5.5$pvalue)
 colnames(DEG5.5) <- c("Gene", "log2FoldChange", "pvalue")
-DEG5.5 <- DEG5.5 %>% filter ( pvalue < 0.1 , abs(log2FoldChange) > 1 )
+DEG5.5 <- DEG5.5 %>% filter ( pvalue < 0.05 , abs(log2FoldChange) > 1 )
 nrow(DEG5.5)
 
 
@@ -134,7 +140,7 @@ nrow(DEG6.0)
 
 DEG6.5 <- cbind.data.frame(rownames(res6.5), res6.5$log2FoldChange, res6.5$pvalue)
 colnames(DEG6.5) <- c("Gene", "log2FoldChange", "pvalue")
-DEG6.5 <- DEG6.5 %>% filter ( pvalue < 0.05 , abs(log2FoldChange) > 1 )
+DEG6.5 <- DEG6.5 %>% filter ( pvalue < 0.1 , abs(log2FoldChange) > 1 )
 nrow(DEG6.5)
 
 
@@ -149,24 +155,72 @@ colnames(DEG7.5) <- c("Gene", "log2FoldChange", "pvalue")
 DEG7.5 <- DEG7.5 %>% filter ( pvalue < 0.05 , abs(log2FoldChange) > 1 )
 nrow(DEG7.5)
 
+##########################
+#PCA staging
+
+DEG_5stage <-rbind.data.frame(DEG5.5, DEG6.0, DEG6.5, DEG7.0, DEG7.5)
+
+
+#then do select Peng's data
+Mapping_dat_Peng <- dds[,c(grep("Pen", colnames(dds)))]
+Mapping_dat_Peng <- Mapping_dat_Peng[,c(grep("E5.5", colnames(Mapping_dat_Peng)),
+                                        grep("E6.0", colnames(Mapping_dat_Peng)),
+                                        grep("E6.5", colnames(Mapping_dat_Peng)),
+                                        grep("E7.0_N1", colnames(Mapping_dat_Peng)),
+                                        grep("E7.5_3", colnames(Mapping_dat_Peng))
+                                        )]
+dds_Peng <- as.data.frame(assay(Mapping_dat_Peng))
+colnames(dds_Peng)
+dds_Peng <- dds_Peng %>% filter (rownames(dds_Peng) %in% DEG_5stage$Gene)
+stage <- substring(colnames(dds_Peng), 12, 15)
+
+#binomiale transformation
+library("edgeR")
+z_dds_Peng <- apply(dds_Peng , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+
+library("rafalib")
+library("FactoMineR")
+library("ggrepel")
+mypar(1,2)
+PCA_TOT=PCA(t(z_dds_Peng) , scale.unit=T,ncp=5, axes = c(1,2))
+PCAcoord <- as.data.frame(PCA_TOT$ind)
+PCA_data <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2], substring(colnames(dds_Peng), 12, 15))
+
+colnames(PCA_data) <- c("PC1", "PC2", "Stage")
+
+PCA <- ggplot(PCA_data, aes(PC1, PC2, colour=Stage)) +
+  geom_point(size=6) +
+  xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
+  ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
+  geom_text_repel(aes(label=substring(colnames(dds_Peng), 12, 15)))+
+  theme_bw()
+PCA
 
 
 
 ############################################################################################
 #extracting top genes
+#7.5
 DEG7.5 <- DEG7.5[order(DEG7.5[,2]), ]
 DEG7.5 <- DEG7.5[-c(grep("Gm", DEG7.5[,1])), ]
 nrow(DEG7.5)
-antetop_7.5 <- DEG7.5[(nrow(DEG7.5)-99):nrow(DEG7.5), ]
-posttop_7.5 <- DEG7.5[1:100, ]
-topDEG7.5 <- rbind(antetop_7.5, posttop_7.5)
+ante_7.5 <- DEG7.5 %>% filter(log2FoldChange > 0)
+post_7.5 <- DEG7.5 %>% filter(log2FoldChange < 0)
 
+write.csv(ante_7.5, "ante_7.5.csv")
+write.csv(post_7.5, "post_7.5.csv")
+
+#7.0
 DEG7.0 <- DEG7.0[order(DEG7.0[,2]), ]
 DEG7.0 <- DEG7.0[-c(grep("Gm", DEG7.0[,1])), ]
 nrow(DEG7.0)
-ante100_7.0 <- DEG7.0[(nrow(DEG7.0)-99):nrow(DEG7.0), ]
-post100_7.0 <- DEG7.0[1:100, ]
+ante_7.0 <- DEG7.0 %>% filter(log2FoldChange > 0)
+post_7.0 <- DEG7.0 %>% filter(log2FoldChange < 0)
 
+write.csv(ante_7.0, "ante_7.0.csv")
+write.csv(post_7.0, "post_7.0.csv")
+
+#6.5
 DEG6.5 <- DEG6.5[order(DEG6.5[,2]), ]
 DEG6.5 <- DEG6.5[-c(grep("Gm", DEG6.5[,1])), ]
 nrow(DEG6.5)
@@ -190,30 +244,31 @@ post100_5.5 <- DEG5.5[1:200, ]
 ###PCA for mapping
 dds_E7.5 <- as.data.frame(assay(dds))
 rownames(dds_E7.5)
-dds_E7.5 <- dds_E7.5 %>% filter (rownames(dds_E7.5) %in% topDEG7.5$Gene)
-dds_E7.5 <- dds_E7.5[,c(c(grep("E7.5_3", colnames(dds_E7.5))),
-                        c(grep("Ost_IwIw", colnames(dds_E7.5))),
-                        c(grep("Ost_AFAF_", colnames(dds_E7.5))
-                        ))]
-dds_E7.5 <- dds_E7.5[,-c(c(grep("R", colnames(dds_E7.5))),
-                        c(grep("L", colnames(dds_E7.5))))]
+dds_E7.5 <- dds_E7.5 %>% filter (rownames(dds_E7.5) %in% DEG7.0$Gene)
+dds_E7.5 <- dds_E7.5[,c(c(grep("E7.0_1", colnames(dds_E7.5)))
+                        ,c(grep("Ost_IwIw", colnames(dds_E7.5)))
+                        ,c(grep("Ost_AFAF_", colnames(dds_E7.5)))
+                        )]
+dds_E7.5 <- dds_E7.5[,-c(grep("P", substring(colnames(dds_E7.5), nchar(colnames(dds_E7.5)), 
+                                                                   nchar(colnames(dds_E7.5)))),
+                        grep("L", colnames(dds_E7.5)))]
 
 #Negative binomiale normalisation
 library("edgeR")
-z_dds_E7.5 <- apply(dds_E7.5 , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+z_dds_E7.5 <- apply(dds_Peng , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
 
 mypar(1,2)
 PCA_TOT=PCA(t(z_dds_E7.5) , scale.unit=T,ncp=5, axes = c(1,2))
 PCAcoord <- as.data.frame(PCA_TOT$ind)
-PCA_data <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2])
+PCA_data <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2], substring(colnames(dds_Peng), 12, 15))
 
-colnames(PCA_data) <- c("PC1", "PC2")
+colnames(PCA_data) <- c("PC1", "PC2", "Stage")
 
-PCA <- ggplot(PCA_data, aes(PC1, PC2)) +
+PCA <- ggplot(PCA_data, aes(PC1, PC2, colour=Stage)) +
   geom_point(size=6) +
   xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
   ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
-  geom_text_repel(aes(label=colnames(dds_E7.5)))+
+  geom_text_repel(aes(label=substring(colnames(dds_Peng), 12, 15)))+
   theme_bw()
 PCA
 
@@ -251,16 +306,25 @@ resDKKvsAFAF <- results(dds2, contrast = c("Lab_Cond", "Ost_DKKn", "Ost_AFAF"))
 resFSIvsAFAF <- results(dds2, contrast = c("Lab_Cond", "Ost_F-SI_", "Ost_AFAF_"))
 resFASIvsAFAF <- results(dds2, contrast = c("Lab_Cond", "Ost_FASI_", "Ost_AFAF_"))
 
+
 #extracting DEGs
 #IwIw versus AFAF
 DEGIwIwvsAFAF <- cbind.data.frame(rownames(resIwIwvsAFAF), resIwIwvsAFAF$log2FoldChange, resIwIwvsAFAF$padj)
 colnames(DEGIwIwvsAFAF) <- c("Gene", "log2FoldChange", "padj")
-DEGIwIwvsAFAF <- DEGIwIwvsAFAF %>% filter ( padj < 0.005 , abs(log2FoldChange) > 2 )
+DEGIwIwvsAFAF <- DEGIwIwvsAFAF %>% filter ( padj < 0.05 , abs(log2FoldChange) > 1 )
 nrow(DEGIwIwvsAFAF)
 
 DEGIwIwvsAFAF <- DEGIwIwvsAFAF[order(DEGIwIwvsAFAF[,2]), ]
-DEGIwIwvsAFAF <- DEGIwIwvsAFAF[-c(grep("Gm", DEGIwIwvsAFAF[,1])), ]
+DEGIwIwvsAFAF <- DEGIwIwvsAFAF[-c(grep("Gm", DEGIwIwvsAFAF[,1]),
+                                  grep("-ps", DEGIwIwvsAFAF[,1])), ]
+DEGIwIwvsAFAF <- DEGIwIwvsAFAF %>% filter (DEGIwIwvsAFAF[,1] %in% DEG7.0$Gene)
 nrow(DEGIwIwvsAFAF)
+
+IwIwgene <- DEGIwIwvsAFAF %>% filter( log2FoldChange > 0)
+write.csv(IwIwgene, "IwIwgene.csv")
+AFAFgene <- DEGIwIwvsAFAF %>% filter( log2FoldChange < 0)
+write.csv(AFAFgene, "AFAFgene.csv")
+
 
 #DKKnull versus AFAF
 DEGDKKvsAFAF <- cbind.data.frame(rownames(resDKKvsAFAF), resDKKvsAFAF$log2FoldChange, resDKKvsAFAF$padj)
@@ -296,6 +360,12 @@ DEGFASIvsAFAF <- DEGFASIvsAFAF[order(DEGFASIvsAFAF[,2]), ]
 DEGFASIvsAFAF <- DEGFASIvsAFAF[-c(grep("Gm", DEGFASIvsAFAF[,1]),
                                 grep("-ps", DEGFASIvsAFAF[,1])), ]
 nrow(DEGFASIvsAFAF)
+
+
+
+
+
+
 
 
 
