@@ -49,6 +49,10 @@ colnames(TABLE) <- c(gsub("E6ExE4","Embryo_Cha_E6.0_ExE", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("E5.5Epi","Embryo_Cha_E5.5_Al", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("E5.5ExE","Embryo_Cha_E5.5_ExE", colnames(TABLE)))
 
+colnames(TABLE) <- c(gsub("Chang_EpiSC.sf","EpiSCs_Cha_F-F-", colnames(TABLE)))
+colnames(TABLE) <- c(gsub("Chang_EpiSC-SF1.sf","EpiSCs_Cha_F-SB_1", colnames(TABLE)))
+colnames(TABLE) <- c(gsub("Chang_EpiSC-SF2.sf","EpiSCs_Cha_F-SB_2", colnames(TABLE)))
+
 #Peng Samples
 colnames(TABLE) <- c(gsub("E5.5_2.","Embryo_Pen_E5.5_", colnames(TABLE)))# 1 and 2 are similar dataset
 colnames(TABLE) <- c(gsub("E6.0_2.","Embryo_Pen_E6.0_", colnames(TABLE)))# 2 contains ExE tissues
@@ -105,8 +109,8 @@ colnames(TABLE_clean)
 E5.5_dat <- TABLE_clean[,c(grep("Pen_E5.5", colnames(TABLE_clean)))]
 E6.0_dat <- TABLE_clean[,c(grep("Pen_E6.0", colnames(TABLE_clean)))]
 E6.5_dat <- TABLE_clean[,c(grep("Pen_E6.5", colnames(TABLE_clean)))]
-E7.0_dat <- TABLE_clean[,c(grep("Pen_E7.0_1", colnames(TABLE_clean)))]
-E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_3_", colnames(TABLE_clean)))]
+E7.0_dat <- TABLE_clean[,c(grep("Pen_E7.0_N", colnames(TABLE_clean)))]
+E7.5_dat <- TABLE_clean[,c(grep("Pen_E7.5_5_", colnames(TABLE_clean)))]
 
 TABLEPeng <- cbind(E5.5_dat, E6.0_dat, E6.5_dat, E7.0_dat, E7.5_dat)
 
@@ -114,13 +118,13 @@ TABLEPeng <- cbind(E5.5_dat, E6.0_dat, E6.5_dat, E7.0_dat, E7.5_dat)
 colnames(TABLEPeng) <- c(gsub("__","_",colnames(TABLEPeng)))
 
 #below if E7.5_5 is used only - to remove ExE samples
-#TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
-#TABLEPeng <- TABLEPeng[,-c(grep("EnA", colnames(TABLEPeng)))]
-#TABLEPeng <- TABLEPeng[,-c(grep("EnP", colnames(TABLEPeng)))]
-#TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
-#TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
-#TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
-#TABLEPeng <- TABLEPeng[,-c(grep("E7.0_N9R", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("M", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EnA", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EnP", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("V", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EA", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("EP", colnames(TABLEPeng)))]
+TABLEPeng <- TABLEPeng[,-c(grep("E7.0_N9R", colnames(TABLEPeng)))]
 
 
 ##### Sample annotation
@@ -144,7 +148,7 @@ PCA_TOT=PCA(t(TABLEPeng) , scale.unit=T,ncp=5, axes = c(1,2))
 
 PCAcoord <- as.data.frame(PCA_TOT$ind)
 
-PCAcoord12 <- cbind.data.frame(PCAcoord[,3], PCAcoord[,2])
+PCAcoord12 <- cbind.data.frame(PCAcoord[,1], PCAcoord[,2])
 
 PCA_data <- cbind.data.frame(PCAcoord12, Stage)
 colnames(PCA_data) <- c("PC1", "PC2",  "Stage")
@@ -158,8 +162,8 @@ PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Stage)) +
 PCA
 
 ## 3D PCA
-library("rgl")
-plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,4], col=as.integer(PCA_data$Stage))
+#library("rgl")
+#plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,4], col=as.integer(PCA_data$Stage))
 
 
 ######################################################################################
@@ -172,15 +176,15 @@ axis3 <- GeneOnPCs[order(GeneOnPCs$PCAvar...3.),]
 EarlyGenes <- rownames(axis3[c(1:200),]) #top100 genes left PC3
 LateGenes <- rownames(axis3[c((length(rownames(axis3))-199):length(rownames(axis3))),]) #top100 genes right PC2
 Gene400 <- c(EarlyGenes, LateGenes)
-write.csv(x = Gene400, "Gene400.csv")
+#write.csv(x = Gene400, "Gene400.csv")
 
 
 ##############
 #Select samples
-TABLEAll <- cbind(TABLEPeng, TABLE_clean[,c(grep("Ost", colnames(TABLE_clean)),
-                                            grep("Wu", colnames(TABLE_clean)),
-                                            grep("Cha", colnames(TABLE_clean)),
-                                            grep("Kur", colnames(TABLE_clean))
+TABLEAll <- cbind(TABLEPeng, TABLE_clean[,c(grep("Ost", colnames(TABLE_clean))
+                                            ,grep("Wu", colnames(TABLE_clean))
+                                            ,grep("Cha", colnames(TABLE_clean))
+                                            #,grep("Kur", colnames(TABLE_clean))
 )])
 TABLEAll <- TABLEAll[,-c(grep("Cha_E5.5_ExE", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("Cha_E6.0_ExE", colnames(TABLEAll)))]
@@ -191,19 +195,20 @@ TABLEAll <- TABLEAll[,-c(grep("AFAF1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("AFIw1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("IwAF1", colnames(TABLEAll)))]
 TABLEAll <- TABLEAll[,-c(grep("IwIw1", colnames(TABLEAll)))]
+TABLEAll <- TABLEAll[,-c(grep("EpiSCs_Wu", colnames(TABLEAll)))]
 
-write.csv(TABLEAll, "TABLEAll.csv")
+#write.csv(TABLEAll, "TABLEAll.csv")
 
 #With the 400 genes
 TABLEStageGene <- TABLEAll[c(which(rownames(TABLEAll) %in% c(Gene400))),]
 
-write.csv(TABLEStageGene, "TABLEAll_G400.csv")
+#write.csv(TABLEStageGene, "TABLEAll_G400.csv")
 
 #Negative binomiale normalisation
 library("edgeR")
-TABLEAll_znorm <- apply(TABLEAll , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+TABLEAll_znorm <- apply(TABLEStageGene , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
 TABLEAll_znorm <- data.frame(TABLEAll_znorm)
-write.csv(TABLEAll_znorm, "TABLEALL_znorm.csv")
+#write.csv(TABLEAll_znorm, "TABLEALL_znorm.csv")
 
 
 #sample annotation
@@ -227,15 +232,47 @@ PCA <- ggplot(PCA_data, aes(PC1, PC2, color=Parameter, shape=Lab)) +
   geom_point(size=5) +
   scale_shape_manual(values=c(15,16,17,18,25))+
   scale_size_discrete()+
-  scale_colour_manual(values=c("black", "blue", "darkorange3", "grey", "purple",
+  scale_colour_manual(values=c("black", "blue", "purple",
                                "cyan","lightseagreen","green", "green4", "darkolivegreen", 
-                               "red", "pink", "magenta", "darkorange3", "grey", "grey"))+
+                               "black", "red","red", "pink", "magenta", "darkorange3", "grey", "grey"))+
   xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
   ylab(paste("PC2", "(",round(PCA_TOT$eig[2,2], 2), "% )"))+
   geom_text_repel(aes(label=colnames(TABLEAll_znorm), size=SizeText))+
   theme_bw()
 PCA
 
-plot3d(PCAcoord[,1],PCAcoord[,2],PCAcoord[,3], col=as.integer(PCA_data$Parameter))
+#Plot on 1 axis
+Lab <- substring(colnames(TABLEStageGene), 8, 10)
+Lab <- c(gsub("Pen","2.Pen", Lab))
+Lab <- c(gsub("Ost","1.Ost", Lab))
+Lab <- c(gsub("Wu","3.Wu", Lab))
+Lab <- c(gsub("Cha","4.Cha", Lab))
+Stage <- substring(colnames(TABLEAll_znorm),12, 15)
+Stage <- c(gsub("AFAF","1.AFAF", Stage))
+Stage <- c(gsub("AFIw","2.AFIw", Stage))
+Stage <- c(gsub("IwIw","3.IwIw", Stage))
+Stage <- c(gsub("IwAF","4.IwAF", Stage))
+Stage <- c(gsub("FASI","6.FASBIw", Stage))
+Stage <- c(gsub("F.SI","5.F-SBIw", Stage))
+Stage <- c(gsub("DKKn","7.DKKnull", Stage))
+Stage <- c(gsub("E","0.E", Stage))
 
+PCA_data <- cbind.data.frame(PCAcoord12, Stage, Lab, SizeText)
+colnames(PCA_data) <- c("PC1", "PC2",  "Parameter", "Lab", "SizeText")
+PCA_data <- PCA_data[-c(110,111,112),]
+  
+Oneaxis_plot <- ggplot(PCA_data, aes(PC1, Parameter, color=Parameter, shape=Lab)) +
+  #geom_point(size=4) +
+  scale_shape_manual(values=c(15,16,10,9,25))+
+  scale_size_discrete()+
+  scale_colour_manual(values=c(
+                            "cyan","lightseagreen","green", "green4", "darkolivegreen",
+                            "black", "blue", "darkorange3","magenta","red", "pink",  "purple",
+                            "black", "blue", "darkorange3","magenta","red", "pink"   ))+
+  xlab(paste("PC1", "(",round(PCA_TOT$eig[1,2], 2), "% )"))+
+  ylab(("Lab"))+
+  geom_jitter(size=4, height = 0.2)+
+  #geom_text_repel(aes(label=colnames(TABLEAll_znorm), size=SizeText))+
+  theme_bw()
+Oneaxis_plot
 
