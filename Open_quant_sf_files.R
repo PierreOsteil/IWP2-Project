@@ -10,7 +10,7 @@ colnames(tx2gene) <- c("TXNAME","GENEID")
 
 #select all files
 
-dir <- "C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset/Salmon/quants/"
+dir <- "C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset/Salmon/quants_2/"
 setwd(dir)
 files <- list.files(dir)
 all(file.exists(files))
