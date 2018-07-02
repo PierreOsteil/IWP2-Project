@@ -23,7 +23,7 @@ Cordata <- read.table("Correlation Score Zipcode E7.0 from website_AVERAGE2.txt"
 y7.0 <- c(1, 1, rep(c(2,3,4,5,6,7,8,9,10,11), each=4))
 x7.0 <- c(1.5,3.5, rep(c(1,4,2,3), 10))
 
-Cor <- Cordata[6,]
+Cor <- Cordata[4,]
 
 E7.0 <- cbind.data.frame(y7.0,x7.0,t(Cor))
 #E7.0 <- rbind.data.frame(E7.0, c(2,5,1), c(1,5,0))

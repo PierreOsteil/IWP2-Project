@@ -118,7 +118,7 @@ colnames(SampleTable) <- c("TissueType", "Lab_Cond")
 colnames(txi$counts) <- rownames(SampleTable)
 
 dds <- DESeqDataSetFromTximport(txi, SampleTable, ~Lab_Cond) #extract txi data
-setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset/DEGs vs AFAF")
+setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset")
 save(dds,file="dds.RData")
 
 dds_EpiSC <- dds[,grep("EpiSCs", colnames(dds))] #choose the samples to analyse in the cohort. 

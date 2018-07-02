@@ -1,6 +1,20 @@
+setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset")
+load("dds.RData")
 
 
+dds <- dds[ rowSums(counts(dds)) > 1, ]
 
+dds_Chang_Frag <- dds[,grep("Embryo_Cha", colnames(dds))]
+dds_Chang_Frag <- dds_Chang_Frag[,-c(grep("ExE", colnames(dds_Chang_Frag))
+                                    ,grep("EX", colnames(dds_Chang_Frag))
+                                    ,grep("V", colnames(dds_Chang_Frag)))]
+colnames(dds_Chang_Frag)
+
+
+#Negative binomiale normalisation
+library("edgeR")
+z_dds <- apply(assay(dds_Chang_Frag) , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+head(z_dds)
 
 
 
