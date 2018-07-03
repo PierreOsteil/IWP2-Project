@@ -62,18 +62,18 @@ colnames(TABLE) <- c(gsub("EpiSC-FSI.","EpiSCs_Ost_F-SI_", colnames(TABLE)))
 
 colnames(TABLE)
 #Change the name
-Lab_stage <- substring(TABLE_name, 12, 17)
+Lab_stage <- substring(colnames(TABLE), 8, 15)
 
 ##Allocate the new names to the samples
-SampleTable <- cbind.data.frame(substring(TABLE_name,1,2), Lab_stage)
-rownames(SampleTable) <- TABLE_name
-colnames(SampleTable) <- c("TissueType", "LabStageAP")
+SampleTable <- cbind.data.frame(substring(colnames(TABLE),1,2), Lab_stage)
+rownames(SampleTable) <- colnames(TABLE)
+colnames(SampleTable) <- c("TissueType", "LabStage")
 colnames(txi$counts) <- rownames(SampleTable)
 
 
 #Dds from txi files
 library("DESeq2")
-dds <- DESeqDataSetFromTximport(txi, SampleTable, ~LabStageAP) #extract txi data
+dds <- DESeqDataSetFromTximport(txi, SampleTable, ~LabStage) #extract txi data
 save(dds, file ="dds.RData")
 
 ###
