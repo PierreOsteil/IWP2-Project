@@ -24,7 +24,7 @@ resDKKvsAFAF <- results(DES, contrast = c("LabStage", "Ost_DKKn", "Ost_AFAF"))
 resFSIvsAFAF <- results(DES, contrast = c("LabStage", "Ost_F-SI", "Ost_AFAF"))
 resFASIvsAFAF <- results(DES, contrast = c("LabStage", "Ost_FASI", "Ost_AFAF"))
 resIwAFvsAFAF <- results(DES, contrast = c("LabStage", "Ost_IwAF", "Ost_AFAF"))
-
+resIwAFvsIwIw <- results(DES, contrast = c("LabStage", "Ost_IwAF", "Ost_IwIw"))
 resWu_IwIwvsAFAF <- results(DES, contrast = c("LabStage", "Wu._IwIw", "Wu._AFAF"))
 resKu_AFIwvsAFAF <- results(DES, contrast = c("LabStage", "Kur_AFIw", "Kur_AFAF"))
 resCha_FSIvsAFAF <- results(DES, contrast = c("LabStage", "Cha_F-SB", "Cha_F-F-"))
@@ -61,7 +61,7 @@ DEGs_lists(res = resWu_IwIwvsAFAF , pval = 0.05, lFC= 1, line = "Wu_IwIwvsAFAF")
 DEGs_lists(res = resKu_AFIwvsAFAF , pval = 0.05, lFC= 1, line = "Ku_AFIwvsAFAF")
 DEGs_lists(res = resCha_FSIvsAFAF , pval = 0.05, lFC= 1, line = "Cha_F-SIvsAFAF")
 DEGs_lists(res = resFSIvsFASI , pval = 0.05, lFC= 1, line = "FSIvsFASI")
-
+DEGs_lists(res = resIwIwvsIwAF , pval = 0.05, lFC= 1, line = "IwIwvsIwAF")
 
 
 ##########################################################
@@ -89,8 +89,8 @@ head(c5.ind)
 
 ########################################################
 #GO results
-dds2_test <- dds_EpiSC[,c(grep("Ost_FASI", colnames(dds_EpiSC)), 
-                           grep("Ost_F-SI", colnames(dds_EpiSC))
+dds2_test <- dds_EpiSC[,c(grep("Cha_F-F-", colnames(dds_EpiSC)), 
+                           grep("Cha_F-SB", colnames(dds_EpiSC))
                           )]
 
 Lab_Cond_dds2_test <- substring(colnames(assay(dds2_test)), 8, 15)
@@ -101,20 +101,20 @@ design <- model.matrix(~Lab_Cond_dds2_test)
 
 IwIwvsAFAF_GO <- camera(assay(dds2_test), index=c5.ind,  design=design,  contrast=2,  inter.gene.cor=0.05)
 
-write.csv(IwIwvsAFAF_GO, file = "FSIvsFASI_GO.csv")
+write.csv(IwIwvsAFAF_GO, file = "IwIwvsIwAF_GO.csv")
 
 dev <- grep(c("DEVELOPMENT|DIFFERENTIATION|GENESIS"),names(c5.ind)) #only developmental one
 #names(c5.ind)[dev]
 GO.dev <- camera(assay(dds2_test),index=c5.ind[dev],  design=design,  contrast=2,  inter.gene.cor=0.05)
-write.csv(GO.dev, file = "FSIvsFASI_GO-DEV.csv")
+write.csv(GO.dev, file = "ChaFFvsVSB_GO-DEV.csv")
 
 
 
 ###############################
 #Barcode plot
-GO_data <- resIwIwvsAFAF
-GO_toplot <- c5.ind$GO_RESPONSE_TO_FIBROBLAST_GROWTH_FACTOR
-title <- "GO_RESPONSE_TO_TRANSFORMING_GROWTH_FACTOR_BETA"
+GO_data <- resCha_FSIvsAFAF
+GO_toplot <- c5.ind$GO_GASTRULATION
+title <- "GO_GASTRULATION"
 
 barcodeplot(GO_data$log2FoldChange, GO_toplot, main= title , quantiles= c(-1,1))
 

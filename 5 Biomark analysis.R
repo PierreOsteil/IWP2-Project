@@ -51,7 +51,9 @@ CL3 <- sanitize_biomark("1362362584_DKKnull&SB  Cell Lineage 3.csv")
 Irene <- CL3[53:80,]
 CL3 <- CL3[-(53:80),]
 TG1 <- sanitize_biomark("1361935250 TGF 1.csv")
+TG1 <- TG1[-c(grep("D7", TG1$Name)),]
 WN1 <- sanitize_biomark("1362020249 WNT 1.csv")
+WN1 <- WN1[-c(grep("D7", WN1$Name)),]
 
 
 
@@ -121,7 +123,6 @@ CL1_CL3_clean <- as.data.frame(bind_rows(CL1_norm_gene, CL3_norm_gene))
 write.csv(CL1_CL3_clean , "CL1_CL3_clean .csv")
 
 
-
 #PCAtable
 Line1 <- "FF"
 Line2 <- "IwF_"
@@ -130,20 +131,20 @@ Line4 <- "FASI"
 Line5 <- "_FSI"
 Line6 <- "DKKn"
 
-TABLE <- rbind.data.frame(CL1_CL3_clean[c(grep(Line1, CL1_CL3_clean$Name)),]
-                          #,CL1_CL3_clean[c(grep(Line2, CL1_CL3_clean$Name)),]
-                          ,CL1_CL3_clean[c(grep(Line3, CL1_CL3_clean$Name)),]
+TABLE <- rbind.data.frame(CL1_CL3_clean[c(grep(Line1, CL1_CL3_clean$Name)),],
+                          #CL1_CL3_clean[c(grep(Line2, CL1_CL3_clean$Name)),],
+                          #CL1_CL3_clean[c(grep(Line3, CL1_CL3_clean$Name)),]
                           #,CL1_CL3_clean[c(grep(Line4, CL1_CL3_clean$Name)),]
-                          #,CL1_CL3_clean[c(grep(Line5, CL1_CL3_clean$Name, ignore.case = T)),]
-                          #,CL1_CL3_clean[c(grep(Line6, CL1_CL3_clean$Name)),]
+                          #,CL1_CL3_clean[c(grep(Line5, CL1_CL3_clean$Name, ignore.case = T)),],
+                          CL1_CL3_clean[c(grep(Line6, CL1_CL3_clean$Name)),]
                           )
 
-CellLine <- c(rep(Line1, 15)
-             #,rep(Line2, 15)
-             ,rep(Line3, 15)
+CellLine <- c(rep(Line1, 15),
+             #rep(Line2, 15),
+             #rep(Line3, 15)
              #,rep(Line4, 15)
-             #,rep(Line5, 15)
-             #,rep(Line6, 15)
+             #,rep(Line5, 15),
+             rep(Line6, 15)
              )
 Day <- c(rep(c(rep(c("D0", "D1", "D2", "D3", "D4" ), each =3)), nrow(TABLE)/15))
 
@@ -195,7 +196,7 @@ DOI <- "D0"
         print(TukeyHSD(aov_model))
       }}
     Mean_Dat <- aggregate(temp_aov[,1]~CellLine, temp_aov, mean)
-    FC <- (Mean_Dat[2,2] - Mean_Dat[1,2])
+    FC <- (Mean_Dat[1,2] - Mean_Dat[2,2]) #!!!!!!WARNING the table is in alphebetical order
     ANOVA_run <- add_row(ANOVA_run,Gene=Genes, pval = pvalue, Days = DOI, log2FoldChange = FC)
   }
 sink()
@@ -249,3 +250,14 @@ g
 #pie(c(14,5,2,1), labels = c("14","5","2","1"), col = c("blue", "red", "green","purple"))
 #pie(c(4,10,8,5), labels = c("4","10","8","5"), col = c("blue", "red", "green","purple"))
 
+
+#######################################################################
+#Cl1, TG1 and WN1 for heatmap.3
+#common samples only
+WN1_clean <- WN1 %>% filter(WN1$Name %in% CL1$Name)
+CL1_WN1_clean <- as.data.frame(bind_cols(CL1, WN1_clean[,-1]))
+
+CL1_WN1_clean <- CL1_WN1_clean %>% filter(CL1_WN1_clean$Name %in% TG1$Name)
+CL1_WN1_clean$Name == TG1_clean$Name
+
+CL1_WN1_TG1_clean <- as.data.frame(bind_cols(CL1_WN1_clean, TG1_clean[,-1]))
