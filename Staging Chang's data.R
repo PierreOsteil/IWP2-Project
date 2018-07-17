@@ -12,14 +12,14 @@ colnames(TABLE) <- c(gsub(".R1.clean","", colnames(TABLE)))
 colnames(TABLE) <- c(gsub(".fastq_quant.sf","", colnames(TABLE)))
 colnames(TABLE) <- c(gsub(".fastq.gz_quant.sf","", colnames(TABLE)))
 colnames(TABLE) <- c(gsub(".fastq.bz2_quant.sf","", colnames(TABLE)))
-###Embryos
+
 #Chang samples
 colnames(TABLE) <- c(gsub("E7.5AP","Embryo_Cha_E7.5_AP", colnames(TABLE)))
-colnames(TABLE) <- c(gsub("E7.5AD","Embryo_Cha_E7.0_AD", colnames(TABLE)))#Warning
+colnames(TABLE) <- c(gsub("E7.5AD","Embryo_Cha_E7.5_AD", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("E7.5P","Embryo_Cha_E7.5_Po", colnames(TABLE)))
 
 colnames(TABLE) <- c(gsub("E7.0AP","Embryo_Cha_E7.0_AP", colnames(TABLE)))
-colnames(TABLE) <- c(gsub("E7.0AD","Embryo_Cha_E7.5_AD", colnames(TABLE)))#Warning
+colnames(TABLE) <- c(gsub("E7.0AD","Embryo_Cha_E7.0_AD", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("E7.0P","Embryo_Cha_E7.0_Po", colnames(TABLE)))
 
 colnames(TABLE) <- c(gsub("E6.5A2","Embryo_Cha_E6.5_An", colnames(TABLE)))
@@ -52,6 +52,10 @@ colnames(TABLE) <- c(gsub("SRR1609337","EpiSCs_Kur_WnBM", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1609338","EpiSCs_Kur_BmIw", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("SRR1609339","EpiSCs_Kur_AFAF", colnames(TABLE)))
 
+#Liu2017
+colnames(TABLE) <- c(gsub("SRR3139090","EpiSCs_Liu_AFAF", colnames(TABLE)))
+colnames(TABLE) <- c(gsub("SRR3139091","EpiSCs_Liu_AFIw", colnames(TABLE)))
+
 #Osteil
 colnames(TABLE) <- c(gsub("EpiSC-DKKnul.","EpiSCs_Ost_DKKn", colnames(TABLE)))
 colnames(TABLE) <- c(gsub("EpiSC-I_AF.","EpiSCs_Ost_IwAF", colnames(TABLE)))
@@ -76,7 +80,7 @@ library("DESeq2")
 dds <- DESeqDataSetFromTximport(txi, SampleTable, ~LabStage) #extract txi data
 save(dds, file ="dds.RData")
 
-###
+#Open the dds from here
 setwd("C:/Users/Pierre/Desktop/IWP2 Paper/Third submission/RNAseq analysis/iTRanscriptome Full Dataset")
 load("dds.RData")
 
@@ -89,25 +93,24 @@ dds <- dds[ rowSums(counts(dds)) > 1, ]
 rld <- rlog(dds, blind=FALSE)
 save(rld, file="rld.Rdata")
 
+#Negative binomiale normalisation
+library("edgeR")
+z_rld <- apply(assay(rld) , 1, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
+
+
 #Select gene of interest
-rld_Chang_Frag <- rld[,grep("Embryo_Cha", colnames(rld))]
+z_rld_Chang_Frag <- z_rld[,grep("Embryo_Cha", colnames(rld))]
+z_rld_Chang_Frag[is.na(z_rld_Chang_Frag)] <- 0
 colnames(rld_Chang_Frag)
 
 
-#Negative binomiale normalisation
-library("edgeR")
-z_rld <- apply(assay(rld_Chang_Frag) , 2, function(x) zscoreNBinom(x, size = 10, mu =mean(x)))
-head(z_rld)
-
-
-
-pca <- prcomp(assay(rld_Chang_Frag), center = T)
+pca <- prcomp(z_rld_Chang_Frag, center = T)
 PCAdata <- as.data.frame(pca$rotation)
 
 
 library("ggplot2")
 library("ggrepel")
-ggplot(PCAdata, aes(PCAdata[,1], PCAdata[,2]))+
+ggplot(PCAdata, aes(PCAdata[,1], PCAdata[,3]))+
   geom_point( 
              size=3) +
   geom_text_repel(aes(label=colnames(rld_Chang_Frag)))+
@@ -122,12 +125,12 @@ GenesOnPCs = as.data.frame(predict(pca)) #extract genes contributing to each PC`
 axis2 <- GenesOnPCs[order(GenesOnPCs$PC2),] #PC2 is the best at predicting timing
 EarlyGenes <- rownames(axis2[c(1:100),]) #top100 genes left PC2
 LateGenes <- rownames(axis2[c((length(rownames(axis2)) - 100):length(rownames(axis2))),])
-rld_StageGene <- rld[c(which(rownames(rld) %in% c(paste(EarlyGenes), paste(LateGenes)))),]
-
+z_rld_StageGene <- z_rld[c(which(rownames(z_rld) %in% c(paste(EarlyGenes), paste(LateGenes)))),]
+z_rld_StageGene[is.na(z_rld_StageGene)] <- 0
 Paper <- substring(colnames(assay(rld)), 8,10)
 
 #PCA
-pca_StageGene <- prcomp(assay(rld_StageGene), center = T)
+pca_StageGene <- prcomp(z_rld_StageGene, center = T)
 PCAdata <- as.data.frame(pca_StageGene$rotation)
 
 PCAdata <- cbind.data.frame(PCAdata, Paper)
@@ -138,3 +141,27 @@ ggplot(PCAdata, aes(PCAdata[,1], PCAdata[,2]))+
   xlab(paste0("PC1: ",round((pca_StageGene$sdev[1])^2 / sum(pca_StageGene$sdev^2)*100, digits = 2) )) +
   ylab(paste0("PC2: ",round((pca_StageGene$sdev[2])^2 / sum(pca_StageGene$sdev^2)*100, digits = 2) )) +
   theme(aspect.ratio=1)
+
+
+
+######################################
+### ALL GENE on EPiSC
+
+
+z_rld[is.na(z_rld)] <- 0
+z_rld2 <- as.data.frame(z_rld)
+#z_rld <- z_rld %>% filter(rownames(z_rld) %in% DEG$Gene)
+
+pca_EpiSC <- prcomp(z_rld2[,grep("EpiSC", colnames(z_rld2))], center = T)
+PCAdata <- as.data.frame(pca_EpiSC$rotation)
+Paper <- substring(colnames(z_rld2[,grep("EpiSC", colnames(z_rld2))]), 8,10)
+
+PCAdata <- cbind.data.frame(PCAdata, Paper)
+ggplot(PCAdata, aes(PCAdata[4], PCAdata[,3]))+
+  geom_point(aes(colour = Paper), 
+             size=3) +
+  geom_text_repel(aes(label=colnames(z_rld[,grep("EpiSC", colnames(z_rld))])), cex=3)+
+  xlab(paste0("PC1: ",round((pca_EpiSC$sdev[1])^2 / sum(pca_EpiSC$sdev^2)*100, digits = 2) )) +
+  ylab(paste0("PC2: ",round((pca_EpiSC$sdev[2])^2 / sum(pca_EpiSC$sdev^2)*100, digits = 2) )) +
+  theme(aspect.ratio=1)
+

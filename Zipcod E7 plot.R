@@ -20,13 +20,13 @@ write.table(Marray_sort, "Dkk1_zipcode.txt")
 #Cornplot E7.0
 library(ggplot2)
 
-Cordata <- read.table("Dkk1_zipcode_Corr.txt", h=T, row.names=1)
+Cordata <- read.table("Correlation Score Zipcode E7.0 from website_AVERAGE meta.txt", h=T, row.names=1)
 
 
 y7.0 <- c(1, 1, rep(c(2,3,4,5,6,7,8,9,10,11), each=4))
 x7.0 <- c(1.5,3.5, rep(c(1,4,2,3), 10))
 
-Cor <- Cordata[10,]
+Cor <- Cordata[2,]
 
 E7.0 <- cbind.data.frame(y7.0,x7.0,t(Cor))
 #E7.0 <- rbind.data.frame(E7.0, c(2,5,1), c(1,5,0))

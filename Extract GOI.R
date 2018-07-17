@@ -56,9 +56,9 @@ heatmap.3(myMat, trace="none", scale="column", zlim=c(-3,3), reorder=FALSE,na.rm
 
 #######################
 #validation with Biomark Data
-TABLE <- CL1_WN1_TG1_clean[grep("D0", WN1$Name),]
+TABLE <- CL1_WN1_TG1_clean[grep("D0", CL1_WN1_TG1_clean$Name),]
 TABLE <- TABLE[-grep("FIw", TABLE$Name),]
-TABLE <- TABLE[-grep("IwF", TABLE$Name),]
+#TABLE <- TABLE[-grep("IwF", TABLE$Name),]
 #TABLE <- TABLE[-grep("Wnt3a", TABLE$Name),]
 
 CellLineCWT1 <- substring(TABLE$Name, 1,nchar(TABLE$Name)-4)

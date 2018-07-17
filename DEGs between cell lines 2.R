@@ -133,5 +133,5 @@ MESO <- c5.ind$GO_MESODERM_DEVELOPMENT
 barcodeplot(resWu_IwIwvsAFAF$log2FoldChange, MESO, main="MESODERM_DEVELOPMENT", quantiles= c(-1,1))
 WNT <- c5.ind$GO_WNT_SIGNALING_PATHWAY
 barcodeplot(resIwIwvsAFAF$log2FoldChange, WNT, main="WNT_SIGNALING_PATHWAY", quantiles= c(-1,1))
-WNT <- c5.ind$GO_WNT_SIGNALING_PATHWAY
+GAS <- c5.ind$GO_GASTRULATION
 barcodeplot(resIwIwvsAFAF$log2FoldChange, WNT, main="WNT_SIGNALING_PATHWAY", quantiles= c(-1,1))

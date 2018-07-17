@@ -130,21 +130,24 @@ Line3 <- "IwIw_"
 Line4 <- "FASI"
 Line5 <- "_FSI"
 Line6 <- "DKKn"
+Line7 <- "Wnt3a"
 
 TABLE <- rbind.data.frame(CL1_CL3_clean[c(grep(Line1, CL1_CL3_clean$Name)),],
-                          #CL1_CL3_clean[c(grep(Line2, CL1_CL3_clean$Name)),],
-                          #CL1_CL3_clean[c(grep(Line3, CL1_CL3_clean$Name)),]
+                          CL1_CL3_clean[c(grep(Line2, CL1_CL3_clean$Name)),]
+                          #,CL1_CL3_clean[c(grep(Line3, CL1_CL3_clean$Name)),],
                           #,CL1_CL3_clean[c(grep(Line4, CL1_CL3_clean$Name)),]
                           #,CL1_CL3_clean[c(grep(Line5, CL1_CL3_clean$Name, ignore.case = T)),],
-                          CL1_CL3_clean[c(grep(Line6, CL1_CL3_clean$Name)),]
+                          #CL1_CL3_clean[c(grep(Line6, CL1_CL3_clean$Name)),],
+                          #CL1_CL3_clean[c(grep(Line7, CL1_CL3_clean$Name)),]
                           )
 
 CellLine <- c(rep(Line1, 15),
-             #rep(Line2, 15),
-             #rep(Line3, 15)
+             rep(Line2, 15)
+             #,rep(Line3, 15),
              #,rep(Line4, 15)
              #,rep(Line5, 15),
-             rep(Line6, 15)
+             #rep(Line6, 15),
+             #rep(Line7, 15)
              )
 Day <- c(rep(c(rep(c("D0", "D1", "D2", "D3", "D4" ), each =3)), nrow(TABLE)/15))
 
@@ -181,7 +184,7 @@ ANOVA_run <- tibble(Gene = character(),Days = integer(), pval = double(), log2Fo
 sink('ANOVA+Tukey_Day_4.txt')
 list_of_genes <- tibble(Gene=integer())
 
-DOI <- "D0"
+DOI <- "D4"
 
   for (i in 2:(length(colnames(TABLE))-2)){
     Genes = colnames(TABLE)[i]
@@ -196,7 +199,7 @@ DOI <- "D0"
         print(TukeyHSD(aov_model))
       }}
     Mean_Dat <- aggregate(temp_aov[,1]~CellLine, temp_aov, mean)
-    FC <- (Mean_Dat[1,2] - Mean_Dat[2,2]) #!!!!!!WARNING the table is in alphebetical order
+    FC <- (Mean_Dat[2,2] - Mean_Dat[1,2]) #!!!!!!WARNING the table is in alphebetical order
     ANOVA_run <- add_row(ANOVA_run,Gene=Genes, pval = pvalue, Days = DOI, log2FoldChange = FC)
   }
 sink()
@@ -247,8 +250,161 @@ g = ggplot(data=gene_list, aes(x=logFC, y=-log10(adj.P.Val), colour=Layer)) +
 
 g
 
-#pie(c(14,5,2,1), labels = c("14","5","2","1"), col = c("blue", "red", "green","purple"))
-#pie(c(4,10,8,5), labels = c("4","10","8","5"), col = c("blue", "red", "green","purple"))
+##########################################################################
+##Pie charts
+sum(Layer$Layer == "Endo")
+sum(Layer$Layer == "Meso")
+sum(Layer$Layer == "Ecto")
+sum(Layer$Layer == "Pluri")
+
+#EpiSC-AFAF vs EpiSC-IwIw day0
+mypar(2,4)
+pie(c(1,7), labels = c("1","7"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(1,26), labels = c("1","26"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(1,26), labels = c("1","26"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(2,20), labels = c("2","20"), col = c("green", "#b4edb8")) #sum Endo = 22
+pie(c(3,5), labels = c("3","5"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(12,15), labels = c("12","15"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(8,19), labels = c("8","19"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(5,17), labels = c("5","17"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+
+#EpiSC-IwAF vs EpiSC-IwIw day0
+mypar(2,4)
+pie(c(1,7), labels = c("1","7"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(2,25), labels = c("2","25"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(5,22), labels = c("5","22"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(2,20), labels = c("2","20"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(5,3), labels = c("5","3"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(14,13), labels = c("14","13"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(7,20), labels = c("7","20"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(7,15), labels = c("7","15"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+#EpiSC-AFAF vs EpiSC-IwAF day0
+mypar(2,4)
+pie(c(3,4), labels = c("3","4"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(4,23), labels = c("4","23"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(6,21), labels = c("6","21"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(6,16), labels = c("6","16"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(5,22), labels = c("5","22"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(7,20), labels = c("7","20"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(4,18), labels = c("4","18"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+
+#EpiSC-AFAF vs EpiSC-IwIw day4
+mypar(2,4)
+pie(c(5,2), labels = c("5","2"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(4,23), labels = c("4","23"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(5,22), labels = c("5","22"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(6,16), labels = c("6","16"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(1,6), labels = c("1","6"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(11,16), labels = c("11","16"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(7,20), labels = c("7","20"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(5,17), labels = c("5","17"), col = c("green", "#b4edb8")) #sum33 Endo = 22
+
+#EpiSC-IwAF vs EpiSC-IwIw day4
+mypar(2,4)
+pie(c(5,2), labels = c("5","2"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(4,23), labels = c("4","23"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(10,17), labels = c("10","17"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(8,14), labels = c("8","14"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(1,7), labels = c("1","7"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(14,13), labels = c("14","13"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(5,22), labels = c("5","22"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(2,20), labels = c("2","20"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+
+#EpiSC-AFAF vs EpiSC-IwAF day4
+mypar(2,4)
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(9,18), labels = c("9","18"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(3,24), labels = c("3","24"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(1,21), labels = c("1","21"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(3,4), labels = c("3","4"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(2,25), labels = c("2","25"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(9,18), labels = c("9","18"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(7,15), labels = c("7","15"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+
+#EpiSC-IwIwWnt3a vs EpiSC-AFAF day0
+mypar(2,4)
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(5,22), labels = c("5","22"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(5,22), labels = c("5","22"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(4,18), labels = c("4","18"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(2,6), labels = c("2","6"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(2,25), labels = c("2","25"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(4,23), labels = c("4","23"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(4,18), labels = c("4","18"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+
+#EpiSC-IwIwWnt3a vs EpiSC-IwIw day0
+mypar(2,4)
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(1,26), labels = c("1","26"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(3,24), labels = c("3","24"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(2,20), labels = c("2","20"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(4,4), labels = c("4","4"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(9,18), labels = c("9","18"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(10,17), labels = c("10","17"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(5,17), labels = c("5","17"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+#EpiSC-IwIwWnt3a vs EpiSC-AFAF day4
+mypar(2,4)
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(5,22), labels = c("5","22"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(3,24), labels = c("3","24"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(1,21), labels = c("1","21"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(3,5), labels = c("3","5"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(5,22), labels = c("5","22"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(2,25), labels = c("2","25"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(6,16), labels = c("6","16"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+#EpiSC-IwIwWnt3a vs EpiSC-IwIw day4
+mypar(2,4)
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(1,26), labels = c("1","26"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(2,25), labels = c("2","25"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(2,20), labels = c("2","20"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(0,8), labels = c("0","8"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(6,21), labels = c("6","21"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(2,25), labels = c("2","25"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(0,22), labels = c("0","22"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+
+#EpiSC-AFAF vs EpiSC-Dkkn day0
+mypar(2,4)
+pie(c(4,4), labels = c("4","4"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(9,18), labels = c("9","18"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(4,23), labels = c("3","24"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(2,20), labels = c("2","20"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(2,6), labels = c("2","6"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(6,21), labels = c("6","21"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(12,15), labels = c("12","15"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(7,15), labels = c("7","15"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+#EpiSC-AFAF vs EpiSC-Dkkn day4
+mypar(2,4)
+pie(c(6,2), labels = c("6","2"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(15,12), labels = c("15","12"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(8,19), labels = c("8","19"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(6,16), labels = c("6","16"), col = c("green", "#b4edb8")) #sum Endo = 22
+
+pie(c(1,7), labels = c("1","7"), col = c("purple", "#bc97d8")) #sum Pluri = 8
+pie(c(3,24), labels = c("3","24"), col = c("blue", "#b4dbed")) #sum Ecto = 27
+pie(c(7,20), labels = c("7","20"), col = c("red", "#edb4b4")) #sum Meso = 27
+pie(c(8,14), labels = c("8","14"), col = c("green", "#b4edb8")) #sum Endo = 22
 
 
 #######################################################################
@@ -258,6 +414,7 @@ WN1_clean <- WN1 %>% filter(WN1$Name %in% CL1$Name)
 CL1_WN1_clean <- as.data.frame(bind_cols(CL1, WN1_clean[,-1]))
 
 CL1_WN1_clean <- CL1_WN1_clean %>% filter(CL1_WN1_clean$Name %in% TG1$Name)
+TG1_clean <- TG1 %>% filter(TG1$Name %in% CL1_WN1_clean$Name)
 CL1_WN1_clean$Name == TG1_clean$Name
 
 CL1_WN1_TG1_clean <- as.data.frame(bind_cols(CL1_WN1_clean, TG1_clean[,-1]))

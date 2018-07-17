@@ -1,7 +1,7 @@
 ###Volcano plot
 library(tidyverse)
 #need a result table from DESeq2 
-Comp <- resFASIvsAFAF
+Comp <- resCha_FSIvsAFAF
 
 gene_list <- cbind.data.frame(Comp$log2FoldChange, Comp$pvalue)
 
